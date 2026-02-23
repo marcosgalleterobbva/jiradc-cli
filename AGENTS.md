@@ -40,6 +40,7 @@ This repository contains a Typer CLI (`jiradc`) for Jira Data Center focused on 
   1. try `GET /rest/api/2/myself`
   2. fallback `GET /rest/auth/1/session`
 - Cookie minimization is applied during verification first (Jira/session cookies only), then full-cookie fallback.
+- Mutating REST calls (`POST/PUT/PATCH/DELETE`) include `X-Atlassian-Token: no-check` by default to avoid XSRF rejections.
 
 ## Implemented command groups
 

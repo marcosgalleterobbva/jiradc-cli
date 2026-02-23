@@ -5,6 +5,7 @@
 - Base URL and cookie are persisted after login.
 - All API paths below are relative to `/rest`.
 - Commands favor concise human output; most include `--raw` for full JSON.
+- Mutating commands (`POST/PUT/PATCH/DELETE`) send `X-Atlassian-Token: no-check` to satisfy Jira XSRF checks.
 
 ## Root commands
 
@@ -166,8 +167,6 @@
 - Endpoint: `POST /api/2/issue/{issueIdOrKey}/attachments`
 - Required:
   - `--file` (repeatable)
-- Notes:
-  - sends `X-Atlassian-Token: no-check`
 - Optional:
   - `--raw`
 

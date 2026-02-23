@@ -56,12 +56,16 @@ class JiraClient:
         headers: dict[str, str] | None = None,
     ) -> Any:
         url = f"{self.base_url}/rest{path}"
+        method_upper = method.upper()
         request_headers = dict(self.session.headers)
+        if method_upper in {"POST", "PUT", "PATCH", "DELETE"}:
+            # Jira Data Center instances behind SSO/WAF frequently enforce XSRF checks on mutations.
+            request_headers.setdefault("X-Atlassian-Token", "no-check")
         if headers:
             request_headers.update(headers)
         try:
             response = self.session.request(
-                method=method.upper(),
+                method=method_upper,
                 url=url,
                 params=params,
                 json=json_body,

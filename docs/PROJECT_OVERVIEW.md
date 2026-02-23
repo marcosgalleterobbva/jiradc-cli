@@ -41,6 +41,7 @@ Key implications:
 3. API layer (`jiradc_cli/client.py`)
    - single request entry point for all Jira calls
    - default headers (Accept, Cookie, X-Requested-With, User-Agent)
+   - mutating requests automatically include `X-Atlassian-Token: no-check`
    - transport and HTTP error normalization
 
 ## Data flow for a typical command
