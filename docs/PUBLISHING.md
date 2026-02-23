@@ -57,7 +57,11 @@ make publish-pypi
 ## 7. Verify install
 
 ```bash
-pip install jiradc-cli
+# pipx-first
+pipx install jiradc-cli
+
+# Alternative (non-pipx):
+# pip install jiradc-cli
 jiradc --help
 ```
 

@@ -23,7 +23,29 @@ The endpoint set is selected from the OpenAPI/Postman files in `resources/` for 
 
 ## Install
 
+From PyPI:
+
 ```bash
+pipx install jiradc-cli
+# or
+pip install jiradc-cli
+```
+
+From source (repo root with `pyproject.toml`):
+
+```bash
+pipx install .
+
+# If you are iterating locally:
+pipx install -e .
+
+# Reinstall after changes (non-editable install):
+pipx reinstall jiradc-cli
+
+# Uninstall:
+pipx uninstall jiradc-cli
+
+# Alternative (non-pipx):
 pip install -e .
 ```
 
@@ -117,7 +139,11 @@ Project metadata includes GitHub links in `pyproject.toml`:
 Release tooling:
 
 ```bash
-pip install -e ".[release]"
+# pipx-first
+pipx install -e ".[release]"
+
+# Alternative (non-pipx):
+# pip install -e ".[release]"
 make bump-patch   # or: make bump-minor / make bump-major
 make build
 make check
