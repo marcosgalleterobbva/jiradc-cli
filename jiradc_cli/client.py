@@ -51,14 +51,23 @@ class JiraClient:
         *,
         params: dict[str, Any] | None = None,
         json_body: dict[str, Any] | list[Any] | None = None,
+        data: dict[str, Any] | None = None,
+        files: Any | None = None,
+        headers: dict[str, str] | None = None,
     ) -> Any:
         url = f"{self.base_url}/rest{path}"
+        request_headers = dict(self.session.headers)
+        if headers:
+            request_headers.update(headers)
         try:
             response = self.session.request(
                 method=method.upper(),
                 url=url,
                 params=params,
                 json=json_body,
+                data=data,
+                files=files,
+                headers=request_headers,
                 timeout=self.timeout_seconds,
             )
         except requests.RequestException as exc:

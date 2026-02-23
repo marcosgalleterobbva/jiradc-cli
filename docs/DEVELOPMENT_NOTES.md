@@ -47,11 +47,11 @@ When adding a new command:
 - No automated tests.
 - No typed response models.
 - No endpoint-specific retry behavior.
-- No command for "my issues" shortcut yet (currently done via `issue search --jql ...`).
+- Some endpoints still return loosely formatted fallback output when Jira payloads vary by instance.
 
 ## Candidate roadmap (user workflow focus)
 
-- `issue mine` command with optional state filters.
-- `issue edit` for summary/description/priority.
-- `issue worklog add/list`.
+- `issue mine` shortcut with optional state presets.
+- `issue subtask` create/move helpers.
+- `agile` shortcuts to map board name -> board id.
 - `project recent` wrapper for `GET /api/2/project?recent=...`.

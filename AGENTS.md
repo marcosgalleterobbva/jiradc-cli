@@ -49,15 +49,57 @@ This repository contains a Typer CLI (`jiradc`) for Jira Data Center focused on 
   - `whoami`
 - `project`:
   - `list`
+  - `components`
+  - `versions`
 - `issue`:
   - `get`
   - `search`
   - `create`
+  - `createmeta-types`
+  - `createmeta-fields`
+  - `editmeta`
+  - `edit`
   - `comments`
   - `comment-add`
+  - `comment-get`
+  - `comment-update`
+  - `comment-delete`
+  - `attachment-add`
   - `transitions`
   - `transition`
   - `assign`
+  - `watchers`
+  - `watcher-add`
+  - `watcher-remove`
+  - `votes`
+  - `vote-add`
+  - `vote-remove`
+  - `worklogs`
+  - `worklog-get`
+  - `worklog-add`
+  - `worklog-update`
+  - `worklog-delete`
+  - `picker`
+  - `link-types`
+  - `link-create`
+- `filter`:
+  - `favourites`
+  - `get`
+  - `create`
+  - `update`
+- `jql`:
+  - `suggest`
+- `agile board`:
+  - `list`
+  - `backlog`
+  - `sprints`
+- `agile sprint`:
+  - `issues`
+  - `move-issues`
+- `agile issue`:
+  - `rank`
+  - `estimation`
+  - `estimation-set`
 
 See `docs/COMMAND_REFERENCE.md` for details.
 
@@ -97,6 +139,5 @@ make publish-pypi
 ## Suggested next features
 
 - `issue mine` shortcut (`assignee = currentUser()` JQL preset)
-- `issue edit` (summary/description/priority fields)
-- `issue worklog` add/list
 - `project recent` using `GET /api/2/project?recent=<N>`
+- board-name and sprint-name resolution helpers for agile commands

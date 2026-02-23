@@ -5,11 +5,14 @@
 `jiradc` is a Jira Data Center command-line client optimized for user workflows:
 
 - inspect identity and projects
-- search and inspect issues
-- create issues
-- add/read comments
-- transition workflow status
-- assign issues
+- search, inspect, create, and edit issues
+- read/add/update/delete comments
+- upload attachments
+- manage watchers and votes
+- add/update/delete worklogs
+- transition workflow status and assign issues
+- manage personal filters and JQL suggestions
+- run Agile board/sprint operations (list/backlog/sprints/rank/estimation)
 
 It is intentionally centered on authenticated user actions rather than admin-level configuration.
 

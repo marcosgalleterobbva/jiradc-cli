@@ -2,9 +2,9 @@
 
 ## Conventions
 
-- Base URL is persisted after login.
+- Base URL and cookie are persisted after login.
 - All API paths below are relative to `/rest`.
-- Commands favor concise human output; many include `--raw` for full JSON.
+- Commands favor concise human output; most include `--raw` for full JSON.
 
 ## Root commands
 
@@ -42,6 +42,19 @@
 - Output: `KEY NAME [projectTypeKey]`
 - Option: `--raw`
 
+### `jiradc project components <PROJECT_ID_OR_KEY>`
+
+- Endpoint: `GET /api/2/project/{projectIdOrKey}/components`
+- Output: component id, name, lead
+- Option: `--raw`
+
+### `jiradc project versions <PROJECT_ID_OR_KEY>`
+
+- Endpoint: `GET /api/2/project/{projectIdOrKey}/versions`
+- Options:
+  - `--expand`
+  - `--raw`
+
 ## Issue commands
 
 ### `jiradc issue search`
@@ -74,6 +87,46 @@
   - `--assignee`
   - `--raw`
 
+### `jiradc issue createmeta-types`
+
+- Endpoint: `GET /api/2/issue/createmeta/{projectIdOrKey}/issuetypes`
+- Required:
+  - `--project`
+- Optional:
+  - `--max-results` (default `50`)
+  - `--start-at` (default `0`)
+  - `--raw`
+
+### `jiradc issue createmeta-fields`
+
+- Endpoint: `GET /api/2/issue/createmeta/{projectIdOrKey}/issuetypes/{issueTypeId}`
+- Required:
+  - `--project`
+  - `--issue-type-id`
+- Optional:
+  - `--max-results` (default `200`)
+  - `--start-at` (default `0`)
+  - `--raw`
+
+### `jiradc issue editmeta <ISSUE_KEY>`
+
+- Endpoint: `GET /api/2/issue/{issueIdOrKey}/editmeta`
+- Optional:
+  - `--raw`
+
+### `jiradc issue edit <ISSUE_KEY>`
+
+- Endpoint: `PUT /api/2/issue/{issueIdOrKey}`
+- Supports field updates:
+  - `--summary`
+  - `--description`
+  - `--priority`
+  - `--assignee`
+  - `--clear-assignee`
+  - `--labels`
+- Optional:
+  - `--notify-users / --no-notify-users`
+
 ### `jiradc issue comments <ISSUE_KEY>`
 
 - Endpoint: `GET /api/2/issue/{issueIdOrKey}/comment`
@@ -85,6 +138,36 @@
 - Endpoint: `POST /api/2/issue/{issueIdOrKey}/comment`
 - Required:
   - `--body` (or prompt)
+- Optional:
+  - `--raw`
+
+### `jiradc issue comment-get <ISSUE_KEY> <COMMENT_ID>`
+
+- Endpoint: `GET /api/2/issue/{issueIdOrKey}/comment/{id}`
+- Optional:
+  - `--expand`
+  - `--raw`
+
+### `jiradc issue comment-update <ISSUE_KEY> <COMMENT_ID>`
+
+- Endpoint: `PUT /api/2/issue/{issueIdOrKey}/comment/{id}`
+- Required:
+  - `--body`
+- Optional:
+  - `--expand`
+  - `--raw`
+
+### `jiradc issue comment-delete <ISSUE_KEY> <COMMENT_ID>`
+
+- Endpoint: `DELETE /api/2/issue/{issueIdOrKey}/comment/{id}`
+
+### `jiradc issue attachment-add <ISSUE_KEY>`
+
+- Endpoint: `POST /api/2/issue/{issueIdOrKey}/attachments`
+- Required:
+  - `--file` (repeatable)
+- Notes:
+  - sends `X-Atlassian-Token: no-check`
 - Optional:
   - `--raw`
 
@@ -106,9 +189,245 @@
 
 - Endpoint: `PUT /api/2/issue/{issueIdOrKey}/assignee`
 - Required:
-  - `--username` (or prompt)
+  - `--username`
 
-## Recommended user-focused JQL presets
+### `jiradc issue watchers <ISSUE_KEY>`
+
+- Endpoint: `GET /api/2/issue/{issueIdOrKey}/watchers`
+- Optional:
+  - `--raw`
+
+### `jiradc issue watcher-add <ISSUE_KEY>`
+
+- Endpoint: `POST /api/2/issue/{issueIdOrKey}/watchers`
+- Optional:
+  - `--username` (if omitted, adds current user)
+
+### `jiradc issue watcher-remove <ISSUE_KEY>`
+
+- Endpoint: `DELETE /api/2/issue/{issueIdOrKey}/watchers`
+- Required:
+  - `--username`
+
+### `jiradc issue votes <ISSUE_KEY>`
+
+- Endpoint: `GET /api/2/issue/{issueIdOrKey}/votes`
+- Optional:
+  - `--raw`
+
+### `jiradc issue vote-add <ISSUE_KEY>`
+
+- Endpoint: `POST /api/2/issue/{issueIdOrKey}/votes`
+- Optional:
+  - `--raw`
+
+### `jiradc issue vote-remove <ISSUE_KEY>`
+
+- Endpoint: `DELETE /api/2/issue/{issueIdOrKey}/votes`
+
+### `jiradc issue worklogs <ISSUE_KEY>`
+
+- Endpoint: `GET /api/2/issue/{issueIdOrKey}/worklog`
+- Optional:
+  - `--raw`
+
+### `jiradc issue worklog-get <ISSUE_KEY> <WORKLOG_ID>`
+
+- Endpoint: `GET /api/2/issue/{issueIdOrKey}/worklog/{id}`
+- Optional:
+  - `--raw`
+
+### `jiradc issue worklog-add <ISSUE_KEY>`
+
+- Endpoint: `POST /api/2/issue/{issueIdOrKey}/worklog`
+- Required:
+  - `--time-spent`
+- Optional:
+  - `--comment`
+  - `--started`
+  - `--adjust-estimate` (`new|leave|manual|auto`)
+  - `--new-estimate` (required when adjust is `new`)
+  - `--reduce-by` (required when adjust is `manual`)
+  - `--raw`
+
+### `jiradc issue worklog-update <ISSUE_KEY> <WORKLOG_ID>`
+
+- Endpoint: `PUT /api/2/issue/{issueIdOrKey}/worklog/{id}`
+- Update fields:
+  - `--time-spent`
+  - `--comment`
+  - `--started`
+- Optional:
+  - `--adjust-estimate` (`new|leave|auto`)
+  - `--new-estimate` (required when adjust is `new`)
+  - `--raw`
+
+### `jiradc issue worklog-delete <ISSUE_KEY> <WORKLOG_ID>`
+
+- Endpoint: `DELETE /api/2/issue/{issueIdOrKey}/worklog/{id}`
+- Optional:
+  - `--adjust-estimate` (`new|leave|manual|auto`)
+  - `--new-estimate` (required when adjust is `new`)
+  - `--increase-by` (required when adjust is `manual`)
+
+### `jiradc issue picker`
+
+- Endpoint: `GET /api/2/issue/picker`
+- Required:
+  - `--query`
+- Optional:
+  - `--current-project-id`
+  - `--current-issue-key`
+  - `--current-jql`
+  - `--show-subtasks / --no-show-subtasks`
+  - `--show-subtask-parent / --no-show-subtask-parent`
+  - `--raw`
+
+### `jiradc issue link-types`
+
+- Endpoint: `GET /api/2/issueLinkType`
+- Optional:
+  - `--raw`
+
+### `jiradc issue link-create`
+
+- Endpoint: `POST /api/2/issueLink`
+- Required:
+  - `--type`
+  - `--inward-issue`
+  - `--outward-issue`
+- Optional:
+  - `--comment`
+
+## Filter commands
+
+### `jiradc filter favourites`
+
+- Endpoint: `GET /api/2/filter/favourite`
+- Optional:
+  - `--expand`
+  - `--raw`
+
+### `jiradc filter get <FILTER_ID>`
+
+- Endpoint: `GET /api/2/filter/{id}`
+- Optional:
+  - `--expand`
+  - `--raw`
+
+### `jiradc filter create`
+
+- Endpoint: `POST /api/2/filter`
+- Required:
+  - `--name`
+  - `--jql`
+- Optional:
+  - `--description`
+  - `--favourite / --no-favourite`
+  - `--raw`
+
+### `jiradc filter update <FILTER_ID>`
+
+- Endpoint: `PUT /api/2/filter/{id}`
+- Update fields:
+  - `--name`
+  - `--jql`
+  - `--description`
+- Optional:
+  - `--raw`
+
+## JQL commands
+
+### `jiradc jql suggest`
+
+- Endpoint: `GET /api/2/jql/autocompletedata/suggestions`
+- Optional:
+  - `--field-name`
+  - `--field-value`
+  - `--predicate-name`
+  - `--predicate-value`
+  - `--raw`
+
+## Agile commands
+
+### `jiradc agile board list`
+
+- Endpoint: `GET /agile/1.0/board`
+- Optional:
+  - `--max-results` (default `50`)
+  - `--start-at` (default `0`)
+  - `--name`
+  - `--project`
+  - `--type` (comma-separated)
+  - `--raw`
+
+### `jiradc agile board backlog <BOARD_ID>`
+
+- Endpoint: `GET /agile/1.0/board/{boardId}/backlog`
+- Optional:
+  - `--jql`
+  - `--fields` (default `summary,status,assignee`)
+  - `--max-results` (default `50`)
+  - `--start-at` (default `0`)
+  - `--validate-query / --no-validate-query`
+  - `--expand`
+  - `--raw`
+
+### `jiradc agile board sprints <BOARD_ID>`
+
+- Endpoint: `GET /agile/1.0/board/{boardId}/sprint`
+- Optional:
+  - `--state` (comma-separated)
+  - `--max-results` (default `50`)
+  - `--start-at` (default `0`)
+  - `--raw`
+
+### `jiradc agile sprint issues <SPRINT_ID>`
+
+- Endpoint: `GET /agile/1.0/sprint/{sprintId}/issue`
+- Optional:
+  - `--jql`
+  - `--fields` (default `summary,status,assignee`)
+  - `--max-results` (default `50`)
+  - `--start-at` (default `0`)
+  - `--validate-query / --no-validate-query`
+  - `--expand`
+  - `--raw`
+
+### `jiradc agile sprint move-issues <SPRINT_ID>`
+
+- Endpoint: `POST /agile/1.0/sprint/{sprintId}/issue`
+- Required:
+  - `--issue` (repeatable, max 50)
+
+### `jiradc agile issue rank`
+
+- Endpoint: `PUT /agile/1.0/issue/rank`
+- Required:
+  - `--issue` (repeatable, max 50)
+  - exactly one of `--before` or `--after`
+- Optional:
+  - `--rank-custom-field-id`
+  - `--raw`
+
+### `jiradc agile issue estimation <ISSUE_KEY>`
+
+- Endpoint: `GET /agile/1.0/issue/{issueIdOrKey}/estimation`
+- Required:
+  - `--board-id`
+- Optional:
+  - `--raw`
+
+### `jiradc agile issue estimation-set <ISSUE_KEY>`
+
+- Endpoint: `PUT /agile/1.0/issue/{issueIdOrKey}/estimation`
+- Required:
+  - `--board-id`
+  - `--value`
+- Optional:
+  - `--raw`
+
+## Recommended JQL presets
 
 - My open issues:
   - `assignee = currentUser() AND resolution = Unresolved ORDER BY updated DESC`
