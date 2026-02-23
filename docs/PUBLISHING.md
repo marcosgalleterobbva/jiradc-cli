@@ -27,6 +27,7 @@ pip install -e ".[release]"
 ## 3. Build distribution artifacts
 
 ```bash
+make bump-patch   # or make bump-minor / make bump-major
 make build
 ```
 
@@ -62,7 +63,7 @@ jiradc --help
 
 ## Release checklist
 
-1. Update `version` in `pyproject.toml`.
+1. Bump version with `make bump-patch` (or `make bump-minor` / `make bump-major`).
 2. Rebuild with `make build`.
 3. Run `make check`.
 4. Upload to TestPyPI and verify install.

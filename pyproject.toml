@@ -34,6 +34,7 @@ Issues = "https://github.com/marcosgalleterobbva/jiradc-cli/issues"
 [project.optional-dependencies]
 release = [
   "build>=1.2.2",
+  "bump-my-version>=1.2.0",
   "twine>=5.1.1",
 ]
 
@@ -42,3 +43,23 @@ jiradc = "jiradc_cli.main:main"
 
 [tool.setuptools.packages.find]
 include = ["jiradc_cli*"]
+
+[tool.bumpversion]
+current_version = "0.2.0"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+search = "{current_version}"
+replace = "{new_version}"
+regex = false
+ignore_missing_version = false
+tag = false
+sign_tags = false
+tag_name = "v{new_version}"
+tag_message = "Bump version: {current_version} -> {new_version}"
+commit = false
+message = "Bump version: {current_version} -> {new_version}"
+commit_args = ""
+files = [
+  { filename = "pyproject.toml" },
+  { filename = "jiradc_cli/__init__.py" },
+]

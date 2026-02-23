@@ -118,6 +118,7 @@ Release tooling:
 
 ```bash
 pip install -e ".[release]"
+make bump-patch   # or: make bump-minor / make bump-major
 make build
 make check
 make publish-testpypi
