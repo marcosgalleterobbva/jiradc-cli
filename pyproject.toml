@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jiradc-cli"
+version = "0.1.0"
+description = "Typer CLI for Jira Data Center using browser session cookies."
+requires-python = ">=3.10"
+dependencies = [
+  "requests>=2.31.0",
+  "typer>=0.12.0",
+]
+
+[project.scripts]
+jiradc = "jiradc_cli.main:main"
+
+[tool.setuptools.packages.find]
+include = ["jiradc_cli*"]
