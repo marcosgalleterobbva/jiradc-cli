@@ -24,6 +24,8 @@ This repository contains a Typer CLI (`jiradc`) for Jira Data Center focused on 
 - `resources/jira_software_dc_10000_swagger.v3.txt`: OpenAPI source (single-line JSON)
 - `resources/jira.10000.postman.txt`: Postman collection source
 - `README.md`: user-facing quickstart
+- `docs/PUBLISHING.md`: PyPI/TestPyPI release workflow via `build` + `twine`
+- `Makefile`: release commands (`build`, `check`, `publish-testpypi`, `publish-pypi`)
 
 ## Authentication model
 
@@ -70,6 +72,16 @@ See `docs/COMMAND_REFERENCE.md` for details.
 ```bash
 pip install -e .
 jiradc --help
+```
+
+## Build and publish
+
+```bash
+pip install -e ".[release]"
+make build
+make check
+make publish-testpypi
+make publish-pypi
 ```
 
 ## Conventions for future agents

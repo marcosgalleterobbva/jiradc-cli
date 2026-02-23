@@ -7,6 +7,7 @@ Agent-oriented project docs:
 - `docs/PROJECT_OVERVIEW.md`
 - `docs/COMMAND_REFERENCE.md`
 - `docs/DEVELOPMENT_NOTES.md`
+- `docs/PUBLISHING.md`
 
 The endpoint set was selected from the OpenAPI/Postman files in `resources/` for common end-user workflows:
 - Authentication/session validation (`/rest/auth/1/session`)
@@ -59,3 +60,22 @@ jiradc issue transition PROJ-123 --id 31 --comment "Moving to In Progress"
 jiradc issue assign PROJ-123 --username alice
 jiradc logout
 ```
+
+## Build and publish
+
+Project metadata includes GitHub links in `pyproject.toml`:
+- Homepage: `https://github.com/marcosgalleterobbva/jiradc-cli`
+- Repository: `https://github.com/marcosgalleterobbva/jiradc-cli`
+- Issues: `https://github.com/marcosgalleterobbva/jiradc-cli/issues`
+
+Release tooling:
+
+```bash
+pip install -e ".[release]"
+make build
+make check
+make publish-testpypi
+make publish-pypi
+```
+
+See `docs/PUBLISHING.md` for the full release workflow.

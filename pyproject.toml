@@ -6,10 +6,35 @@ build-backend = "setuptools.build_meta"
 name = "jiradc-cli"
 version = "0.1.0"
 description = "Typer CLI for Jira Data Center using browser session cookies."
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
   "requests>=2.31.0",
   "typer>=0.12.0",
+]
+keywords = ["jira", "jira-data-center", "cli", "typer", "sso", "cookie-auth"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/marcosgalleterobbva/jiradc-cli"
+Repository = "https://github.com/marcosgalleterobbva/jiradc-cli"
+Issues = "https://github.com/marcosgalleterobbva/jiradc-cli/issues"
+
+[project.optional-dependencies]
+release = [
+  "build>=1.2.2",
+  "twine>=5.1.1",
 ]
 
 [project.scripts]
