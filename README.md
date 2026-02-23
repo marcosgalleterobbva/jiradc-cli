@@ -2,6 +2,12 @@
 
 Typer CLI for Jira Data Center that authenticates with a browser session cookie (no PAT required).
 
+Agent-oriented project docs:
+- `AGENTS.md`
+- `docs/PROJECT_OVERVIEW.md`
+- `docs/COMMAND_REFERENCE.md`
+- `docs/DEVELOPMENT_NOTES.md`
+
 The endpoint set was selected from the OpenAPI/Postman files in `resources/` for common end-user workflows:
 - Authentication/session validation (`/rest/auth/1/session`)
 - User identity (`/rest/api/2/myself`)
