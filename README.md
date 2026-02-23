@@ -83,6 +83,9 @@ jiradc project versions PROJ
 jiradc issue search --jql "assignee = currentUser() AND statusCategory != Done"
 jiradc issue get PROJ-123
 jiradc issue create --project PROJ --summary "New task" --issue-type Task
+jiradc issue create --project PROJ --summary "Task with custom field" \
+  --description "Required description" \
+  --custom-field 'customfield_13300={"inputValues":["Team Backlog Value"]}'
 jiradc issue editmeta PROJ-123
 jiradc issue edit PROJ-123 --summary "Updated summary" --priority High
 

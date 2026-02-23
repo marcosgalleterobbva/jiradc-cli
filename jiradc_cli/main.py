@@ -175,6 +175,149 @@ def _print_issue_rows(rows: list[dict[str, Any]]) -> None:
         typer.echo(f"{str(issue_key):12} {status_name or '-':14} {assignee_name or '-':20} {summary}")
 
 
+def _load_json_object_option(raw_value: str, option_name: str) -> dict[str, Any]:
+    source = raw_value
+    if raw_value.startswith("@"):
+        path = Path(raw_value[1:]).expanduser()
+        try:
+            source = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise typer.Exit(code=_fail(f"{option_name}: unable to read file {path}: {exc}"))
+
+    try:
+        payload = json.loads(source)
+    except json.JSONDecodeError as exc:
+        raise typer.Exit(code=_fail(f"{option_name}: invalid JSON ({exc.msg})."))
+
+    if not isinstance(payload, dict):
+        raise typer.Exit(code=_fail(f"{option_name}: expected a JSON object."))
+    return payload
+
+
+def _parse_custom_field_assignments(assignments: list[str]) -> dict[str, Any]:
+    fields: dict[str, Any] = {}
+    for assignment in assignments:
+        if "=" not in assignment:
+            raise typer.Exit(
+                code=_fail(
+                    "--custom-field must use FIELD_ID=VALUE format "
+                    "(VALUE can be plain text or JSON)."
+                )
+            )
+
+        field_id, raw_value = assignment.split("=", 1)
+        field_id = field_id.strip()
+        value_text = raw_value.strip()
+
+        if not field_id:
+            raise typer.Exit(code=_fail("--custom-field must include a field id before '='."))
+        if not value_text:
+            raise typer.Exit(code=_fail(f"--custom-field {field_id}: value cannot be empty."))
+
+        try:
+            parsed_value = json.loads(value_text)
+        except json.JSONDecodeError:
+            parsed_value = value_text
+        fields[field_id] = parsed_value
+    return fields
+
+
+def _collect_issue_create_extra_fields(
+    custom_fields: list[str],
+    fields_json: str | None,
+) -> dict[str, Any]:
+    merged = _parse_custom_field_assignments(custom_fields)
+    if fields_json is not None:
+        merged.update(_load_json_object_option(fields_json, "--fields-json"))
+    return merged
+
+
+def _extract_issue_types(payload: Any) -> list[dict[str, Any]]:
+    candidates: list[dict[str, Any]] = []
+    if not isinstance(payload, dict):
+        return candidates
+
+    direct = payload.get("issueTypes")
+    if isinstance(direct, list):
+        candidates.extend(item for item in direct if isinstance(item, dict))
+
+    values = payload.get("values")
+    if isinstance(values, list):
+        candidates.extend(item for item in values if isinstance(item, dict))
+
+    projects = payload.get("projects")
+    if isinstance(projects, list):
+        for project in projects:
+            if not isinstance(project, dict):
+                continue
+            issue_types = project.get("issuetypes")
+            if not isinstance(issue_types, list):
+                issue_types = project.get("issueTypes")
+            if isinstance(issue_types, list):
+                candidates.extend(item for item in issue_types if isinstance(item, dict))
+
+    deduped: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for issue_type in candidates:
+        key = str(issue_type.get("id") or issue_type.get("name") or "")
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(issue_type)
+    return deduped
+
+
+def _extract_createmeta_fields(payload: Any, issue_type_id: str | None = None) -> dict[str, Any] | None:
+    if not isinstance(payload, dict):
+        return None
+
+    fields = payload.get("fields")
+    if isinstance(fields, dict):
+        return fields
+
+    values = payload.get("values")
+    if isinstance(values, list):
+        fallback: dict[str, Any] | None = None
+        for value in values:
+            if not isinstance(value, dict):
+                continue
+            value_fields = value.get("fields")
+            if not isinstance(value_fields, dict):
+                continue
+            if issue_type_id and str(value.get("id")) == issue_type_id:
+                return value_fields
+            if fallback is None:
+                fallback = value_fields
+        if fallback is not None:
+            return fallback
+
+    projects = payload.get("projects")
+    if isinstance(projects, list):
+        fallback = None
+        for project in projects:
+            if not isinstance(project, dict):
+                continue
+            issue_types = project.get("issuetypes")
+            if not isinstance(issue_types, list):
+                issue_types = project.get("issueTypes")
+            if not isinstance(issue_types, list):
+                continue
+            for issue_type in issue_types:
+                if not isinstance(issue_type, dict):
+                    continue
+                issue_fields = issue_type.get("fields")
+                if not isinstance(issue_fields, dict):
+                    continue
+                if issue_type_id and str(issue_type.get("id")) == issue_type_id:
+                    return issue_fields
+                if fallback is None:
+                    fallback = issue_fields
+        if fallback is not None:
+            return fallback
+
+    return None
+
+
 def _worklog_adjustment_params(
     *,
     adjust_estimate: str | None,
@@ -489,6 +632,19 @@ def issue_create(
     issue_type: str = typer.Option("Task", "--issue-type", help="Jira issue type name."),
     description: str | None = typer.Option(None, "--description", help="Issue description."),
     assignee: str | None = typer.Option(None, "--assignee", help="Username to assign at creation."),
+    custom_field: list[str] = typer.Option(
+        [],
+        "--custom-field",
+        help=(
+            "Custom field assignment in FIELD_ID=VALUE format. "
+            "VALUE may be plain text or JSON. Repeat option for multiple fields."
+        ),
+    ),
+    fields_json: str | None = typer.Option(
+        None,
+        "--fields-json",
+        help="JSON object with additional fields, or @<path> to load JSON from file.",
+    ),
     raw: bool = typer.Option(False, "--raw", help="Print full JSON response."),
 ) -> None:
     """Create an issue."""
@@ -503,6 +659,7 @@ def issue_create(
             fields["description"] = description
         if assignee:
             fields["assignee"] = {"name": assignee}
+        fields.update(_collect_issue_create_extra_fields(custom_field, fields_json))
         return _require_client().request("POST", "/api/2/issue", json_body={"fields": fields})
 
     payload = _require_success("issue create", run)
@@ -525,11 +682,19 @@ def issue_create_meta_types(
     """List issue types available when creating issues in a project."""
 
     def run() -> Any:
+        client = _require_client()
         params = {"maxResults": max_results, "startAt": start_at}
-        return _require_client().request(
+        payload = client.request(
             "GET",
             f"/api/2/issue/createmeta/{project}/issuetypes",
             params=params,
+        )
+        if _extract_issue_types(payload):
+            return payload
+        return client.request(
+            "GET",
+            "/api/2/issue/createmeta",
+            params={"projectKeys": project, "expand": "projects.issuetypes"},
         )
 
     payload = _require_success("issue createmeta-types", run)
@@ -539,8 +704,8 @@ def issue_create_meta_types(
     if not isinstance(payload, dict):
         typer.echo(str(payload))
         return
-    issue_types = payload.get("issueTypes")
-    if not isinstance(issue_types, list):
+    issue_types = _extract_issue_types(payload)
+    if not issue_types:
         _echo_json(payload)
         return
     for issue_type in issue_types:
@@ -563,11 +728,23 @@ def issue_create_meta_fields(
     """List field metadata for issue creation in a project/issue type."""
 
     def run() -> Any:
+        client = _require_client()
         params = {"maxResults": max_results, "startAt": start_at}
-        return _require_client().request(
+        payload = client.request(
             "GET",
             f"/api/2/issue/createmeta/{project}/issuetypes/{issue_type_id}",
             params=params,
+        )
+        if _extract_createmeta_fields(payload, issue_type_id) is not None:
+            return payload
+        return client.request(
+            "GET",
+            "/api/2/issue/createmeta",
+            params={
+                "projectKeys": project,
+                "issuetypeIds": issue_type_id,
+                "expand": "projects.issuetypes.fields",
+            },
         )
 
     payload = _require_success("issue createmeta-fields", run)
@@ -577,7 +754,7 @@ def issue_create_meta_fields(
     if not isinstance(payload, dict):
         typer.echo(str(payload))
         return
-    fields = payload.get("fields")
+    fields = _extract_createmeta_fields(payload, issue_type_id)
     if not isinstance(fields, dict):
         _echo_json(payload)
         return

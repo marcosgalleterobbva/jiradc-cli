@@ -86,11 +86,14 @@
   - `--issue-type` (default `Task`)
   - `--description`
   - `--assignee`
+  - `--custom-field FIELD_ID=VALUE` (repeatable; `VALUE` can be JSON)
+  - `--fields-json <JSON_OR_@FILE>` (merged into `fields`; can override defaults)
   - `--raw`
 
 ### `jiradc issue createmeta-types`
 
-- Endpoint: `GET /api/2/issue/createmeta/{projectIdOrKey}/issuetypes`
+- Primary endpoint: `GET /api/2/issue/createmeta/{projectIdOrKey}/issuetypes`
+- Fallback endpoint: `GET /api/2/issue/createmeta?projectKeys=<KEY>&expand=projects.issuetypes`
 - Required:
   - `--project`
 - Optional:
@@ -100,7 +103,8 @@
 
 ### `jiradc issue createmeta-fields`
 
-- Endpoint: `GET /api/2/issue/createmeta/{projectIdOrKey}/issuetypes/{issueTypeId}`
+- Primary endpoint: `GET /api/2/issue/createmeta/{projectIdOrKey}/issuetypes/{issueTypeId}`
+- Fallback endpoint: `GET /api/2/issue/createmeta?projectKeys=<KEY>&issuetypeIds=<ID>&expand=projects.issuetypes.fields`
 - Required:
   - `--project`
   - `--issue-type-id`
