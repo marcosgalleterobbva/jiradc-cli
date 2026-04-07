@@ -30,6 +30,7 @@ class JiraClient:
     def __init__(self, config: JiraConfig, timeout_seconds: int = 30) -> None:
         self.base_url = config.base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
+        self.xsrf_token = _extract_xsrf_token(config.cookie)
         self.session = requests.Session()
         self.session.headers.update(
             {
@@ -60,7 +61,14 @@ class JiraClient:
         request_headers = dict(self.session.headers)
         if method_upper in {"POST", "PUT", "PATCH", "DELETE"}:
             # Jira Data Center instances behind SSO/WAF frequently enforce XSRF checks on mutations.
-            request_headers.setdefault("X-Atlassian-Token", "no-check")
+            if self.xsrf_token:
+                request_headers["X-Atlassian-Token"] = self.xsrf_token
+            else:
+                request_headers.setdefault("X-Atlassian-Token", "no-check")
+            request_headers.setdefault("Origin", self.base_url)
+            request_headers.setdefault(
+                "Referer", f"{self.base_url}/secure/Dashboard.jspa"
+            )
         if headers:
             request_headers.update(headers)
         try:
@@ -109,6 +117,14 @@ def _error_message(response: requests.Response) -> str:
 def _looks_like_html(text: str) -> bool:
     lowered = text.lstrip().lower()
     return lowered.startswith("<!doctype html") or lowered.startswith("<html")
+
+
+def _extract_xsrf_token(cookie: str) -> str | None:
+    for part in cookie.split(";"):
+        chunk = part.strip()
+        if chunk.lower().startswith("atlassian.xsrf.token="):
+            return chunk.split("=", 1)[1].strip() or None
+    return None
 
 
 def _summarize_html_error(text: str, status_code: int) -> str:
