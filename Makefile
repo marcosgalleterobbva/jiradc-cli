@@ -14,7 +14,7 @@ check:
 publish-testpypi:
 	$(PYTHON) -m twine upload --repository testpypi dist/*
 
-publish-pypi:
+publish-pypi: build
 	$(PYTHON) -m twine upload dist/*
 
 bump-version:
