@@ -632,6 +632,9 @@ def issue_create(
     issue_type: str = typer.Option("Task", "--issue-type", help="Jira issue type name."),
     description: str | None = typer.Option(None, "--description", help="Issue description."),
     assignee: str | None = typer.Option(None, "--assignee", help="Username to assign at creation."),
+    labels: str | None = typer.Option(None, "--labels", help="Comma-separated labels."),
+    reporter: str | None = typer.Option(None, "--reporter", help="Reporter username."),
+    due_date: str | None = typer.Option(None, "--due-date", help="Due date in YYYY-MM-DD format."),
     custom_field: list[str] = typer.Option(
         [],
         "--custom-field",
@@ -659,6 +662,12 @@ def issue_create(
             fields["description"] = description
         if assignee:
             fields["assignee"] = {"name": assignee}
+        if labels is not None:
+            fields["labels"] = [l.strip() for l in labels.split(",") if l.strip()]
+        if reporter:
+            fields["reporter"] = {"name": reporter}
+        if due_date:
+            fields["duedate"] = due_date
         fields.update(_collect_issue_create_extra_fields(custom_field, fields_json))
         return _require_client().request("POST", "/api/2/issue", json_body={"fields": fields})
 
@@ -806,6 +815,21 @@ def issue_edit(
     assignee: str | None = typer.Option(None, "--assignee", help="Set assignee username."),
     clear_assignee: bool = typer.Option(False, "--clear-assignee", help="Set assignee to unassigned."),
     labels: str | None = typer.Option(None, "--labels", help="Comma-separated labels to replace existing labels."),
+    reporter: str | None = typer.Option(None, "--reporter", help="Reporter username."),
+    due_date: str | None = typer.Option(None, "--due-date", help="Due date in YYYY-MM-DD format."),
+    custom_field: list[str] = typer.Option(
+        [],
+        "--custom-field",
+        help=(
+            "Custom field assignment in FIELD_ID=VALUE format. "
+            "VALUE may be plain text or JSON. Repeat option for multiple fields."
+        ),
+    ),
+    fields_json: str | None = typer.Option(
+        None,
+        "--fields-json",
+        help="JSON object with additional fields, or @<path> to load JSON from file.",
+    ),
     notify_users: bool = typer.Option(True, "--notify-users/--no-notify-users", help="Notify watchers by email."),
 ) -> None:
     """Edit issue fields (summary/description/priority/assignee/labels)."""
@@ -826,12 +850,18 @@ def issue_edit(
     label_values = _split_csv(labels)
     if labels is not None:
         fields["labels"] = label_values or []
+    if reporter is not None:
+        fields["reporter"] = {"name": reporter}
+    if due_date is not None:
+        fields["duedate"] = due_date
+    fields.update(_collect_issue_create_extra_fields(custom_field, fields_json))
 
     if not fields:
         raise typer.Exit(
             code=_fail(
                 "No updates provided. Use at least one of --summary, --description, "
-                "--priority, --assignee, --clear-assignee, or --labels."
+                "--priority, --assignee, --clear-assignee, --labels, --reporter, "
+                "--due-date, or --custom-field."
             )
         )
 
